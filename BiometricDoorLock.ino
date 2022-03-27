@@ -1,30 +1,19 @@
 #include "esp_camera.h"
 #include <WiFi.h>
+#include <WiFiClientSecure.h>
+#include "bot.h"
 
-//
-// WARNING!!! PSRAM IC required for UXGA resolution and high JPEG quality
-//            Ensure ESP32 Wrover Module or other board with PSRAM is selected
-//            Partial images will be transmitted if image exceeds buffer size
-//
-
-// Select camera model
-#define CAMERA_MODEL_WROVER_KIT // Has PSRAM
-//#define CAMERA_MODEL_ESP_EYE // Has PSRAM
-//#define CAMERA_MODEL_M5STACK_PSRAM // Has PSRAM
-//#define CAMERA_MODEL_M5STACK_V2_PSRAM // M5Camera version B Has PSRAM
-//#define CAMERA_MODEL_M5STACK_WIDE // Has PSRAM
-//#define CAMERA_MODEL_M5STACK_ESP32CAM // No PSRAM
-//#define CAMERA_MODEL_AI_THINKER // Has PSRAM
-//#define CAMERA_MODEL_TTGO_T_JOURNAL // No PSRAM
+#define CAMERA_MODEL_AI_THINKER // Has PSRAM
 
 #include "camera_pins.h"
 
-const char* ssid = "*********";
-const char* password = "*********";
+const char* ssid = "No Free Internet For You";
+const char* password = "12345678nono87654321";
 
 void startCameraServer();
 
 void setup() {
+  //WRITE_PERI_REG(RTC_CNTL_BROWN_OUT_REG, 0);
   Serial.begin(115200);
   Serial.setDebugOutput(true);
   Serial.println();
@@ -50,10 +39,10 @@ void setup() {
   config.pin_reset = RESET_GPIO_NUM;
   config.xclk_freq_hz = 20000000;
   config.pixel_format = PIXFORMAT_JPEG;
-  
+
   // if PSRAM IC present, init with UXGA resolution and higher JPEG quality
   //                      for larger pre-allocated frame buffer.
-  if(psramFound()){
+  if (psramFound()) {
     config.frame_size = FRAMESIZE_UXGA;
     config.jpeg_quality = 10;
     config.fb_count = 2;
@@ -89,9 +78,9 @@ void setup() {
   s->set_vflip(s, 1);
   s->set_hmirror(s, 1);
 #endif
-
+  WiFi.mode(WIFI_STA);
   WiFi.begin(ssid, password);
-
+  clientTCP.setCACert(TELEGRAM_CERTIFICATE_ROOT);
   while (WiFi.status() != WL_CONNECTED) {
     delay(500);
     Serial.print(".");
@@ -107,6 +96,6 @@ void setup() {
 }
 
 void loop() {
-  // put your main code here, to run repeatedly:
-  delay(10000);
+  readBot();
+  delay(100);
 }
