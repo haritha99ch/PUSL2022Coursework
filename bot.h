@@ -1,7 +1,7 @@
 //Telegram Bot
 #include <UniversalTelegramBot.h>
 #include <ArduinoJson.h>
-#define FLASH_LED_PIN 4
+#define FLASH_LED_PIN 33
 
 String sendPhotoTelegram();
 String _chatId = "980828375";

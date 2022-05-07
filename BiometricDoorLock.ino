@@ -1,15 +1,20 @@
-#include "esp_camera.h"
 #include <WiFi.h>
+#include "esp_camera.h"
 #include <WiFiClientSecure.h>
 #include "bot.h"
+#include <ESP32Servo.h>
 
 #define CAMERA_MODEL_AI_THINKER // Has PSRAM
 
 #include "camera_pins.h"
 
-const char* ssid = "No Free Internet For You";
-const char* password = "12345678nono87654321";
-
+Servo door;
+const char* ssid = "ESP32 Access Point";
+const char* password = "asd1234cxz";
+bool doorLocked;
+boolean matchFace = false;
+long prevMillis=0;
+int interval = 5000;
 void startCameraServer();
 
 void setup() {
@@ -17,6 +22,9 @@ void setup() {
   Serial.begin(115200);
   Serial.setDebugOutput(true);
   Serial.println();
+  doorLocked=true;
+  door.attach(14);
+  door.write(0);
 
   camera_config_t config;
   config.ledc_channel = LEDC_CHANNEL_0;
@@ -96,6 +104,19 @@ void setup() {
 }
 
 void loop() {
+  //Door lock logic
+  if(matchFace && doorLocked){
+    door.write(90);
+    doorLocked=false;
+    sendPhotoToTelegram();
+    prevMillis=millis();
+  }
+  if(!doorLocked && millis() - prevMillis > interval){
+    door.write(0);
+    doorLocked=true;
+    
+  }
   readBot();
+  // put your main code here, to run repeatedly:
   delay(100);
 }
