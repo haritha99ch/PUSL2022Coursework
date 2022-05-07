@@ -104,6 +104,7 @@ void setup() {
 }
 
 void loop() {
+  //TODO: Motion sensor
   //Door lock logic
   if(matchFace && doorLocked){
     door.write(90);
