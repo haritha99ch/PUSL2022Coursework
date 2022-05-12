@@ -1,14 +1,16 @@
 #include <WiFi.h>
 #include "esp_camera.h"
+#include <ESP32Servo.h>
 #include <WiFiClientSecure.h>
 #include "bot.h"
-#include <ESP32Servo.h>
+
 
 #define CAMERA_MODEL_AI_THINKER // Has PSRAM
 
 #include "camera_pins.h"
+#define FLASH_LED_PIN 33
 
-Servo door;
+
 const char* ssid = "ESP32 Access Point";
 const char* password = "asd1234cxz";
 bool doorLocked;
@@ -25,6 +27,7 @@ void setup() {
   doorLocked=true;
   door.attach(14);
   door.write(0);
+  
 
   camera_config_t config;
   config.ledc_channel = LEDC_CHANNEL_0;
@@ -107,7 +110,7 @@ void loop() {
   //TODO: Motion sensor
   //Door lock logic
   if(matchFace && doorLocked){
-    door.write(90);
+    door.write(180);
     doorLocked=false;
     sendPhotoToTelegram();
     prevMillis=millis();

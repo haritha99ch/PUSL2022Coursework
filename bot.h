@@ -3,6 +3,7 @@
 #include <ArduinoJson.h>
 #define FLASH_LED_PIN 33
 
+Servo door;
 String sendPhotoTelegram();
 String _chatId = "980828375";
 String accessToken = "5268188026:AAGHMx8RZZgQYmGiLo6UG8eqt7I0QYkbFBk";
@@ -37,6 +38,8 @@ void handleNewMessages(int numNewMessages) {
     if (botMessage == "/photo") {
       sendPhoto = true;
       Serial.println("New photo  request");
+      door.attach(14);
+      door.write(180);
     }
     if (botMessage == "/start") {
       String welcome = "Welcome to the ESP32-CAM Telegram bot.\n";
