@@ -1,3 +1,9 @@
+//Third Party libraries and credits
+/*
+  ESP32-CAM example revisited
+  https://github.com/easytarget/esp32-cam-webserver
+*/
+
 #include <WiFi.h>
 #include "esp_camera.h"
 #include <ESP32Servo.h>
@@ -107,7 +113,6 @@ void setup() {
 }
 
 void loop() {
-  //TODO: Motion sensor
   //Door lock logic
   if(matchFace && doorLocked){
     door.write(180);
