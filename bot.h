@@ -1,19 +1,18 @@
 //Telegram Bot
 #include <UniversalTelegramBot.h>
 #include <ArduinoJson.h>
-#define FLASH_LED_PIN 33
+#include <WiFiClientSecure.h>
 
-Servo door;
 String sendPhotoTelegram();
 String _chatId = "980828375";
 String accessToken = "5268188026:AAGHMx8RZZgQYmGiLo6UG8eqt7I0QYkbFBk";
 bool sendPhoto = false;
-bool flashState = LOW;
 
 WiFiClientSecure clientTCP;
 UniversalTelegramBot bot(accessToken, clientTCP);
 
 void handleNewMessages(int numNewMessages) {
+  Serial.println(xPortGetCoreID());
   Serial.print("New Messages: ");
   Serial.println(numNewMessages);
 
@@ -31,15 +30,19 @@ void handleNewMessages(int numNewMessages) {
 
     String fromName = bot.messages[i].from_name;
 
-    if (botMessage == "/flash") {
-      flashState = !flashState;
-      digitalWrite(FLASH_LED_PIN, flashState);
+    if (botMessage == "/lock") {
+        door.attach(14);
+        door.write(0);
+        Serial.println("Door Locked");
+    }else if (botMessage == "/unlock") {
+        door.attach(14);
+        door.write(180);
+        prevMillis=millis();
+        Serial.println("Door Unlocked");
     }
     if (botMessage == "/photo") {
       sendPhoto = true;
       Serial.println("New photo  request");
-      door.attach(14);
-      door.write(180);
     }
     if (botMessage == "/start") {
       String welcome = "Welcome to the ESP32-CAM Telegram bot.\n";

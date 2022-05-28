@@ -1,40 +1,26 @@
-//Third Party libraries and credits
-/*
-  ESP32-CAM example revisited
-  https://github.com/easytarget/esp32-cam-webserver
-*/
-
-#include <WiFi.h>
+TaskHandle_t Task1;
+boolean matchFace=false;
+bool doorLocked=true;
+long prevMillis=0;
+int interval = 5000;
 #include "esp_camera.h"
+#include <WiFi.h>
 #include <ESP32Servo.h>
-#include <WiFiClientSecure.h>
+Servo door;
 #include "bot.h"
-
-
 #define CAMERA_MODEL_AI_THINKER // Has PSRAM
 
 #include "camera_pins.h"
-#define FLASH_LED_PIN 33
 
-
-const char* ssid = "ESP32 Access Point";
-const char* password = "asd1234cxz";
-bool doorLocked;
-boolean matchFace = false;
-long prevMillis=0;
-int interval = 5000;
+const char* ssid = "No Free Internet For You";
+const char* password = "12345678nono87654321";
 void startCameraServer();
 
 void setup() {
-  //WRITE_PERI_REG(RTC_CNTL_BROWN_OUT_REG, 0);
+
   Serial.begin(115200);
   Serial.setDebugOutput(true);
   Serial.println();
-  doorLocked=true;
-  door.attach(14);
-  door.write(0);
-  
-
   camera_config_t config;
   config.ledc_channel = LEDC_CHANNEL_0;
   config.ledc_timer = LEDC_TIMER_0;
@@ -56,10 +42,10 @@ void setup() {
   config.pin_reset = RESET_GPIO_NUM;
   config.xclk_freq_hz = 20000000;
   config.pixel_format = PIXFORMAT_JPEG;
-
+  
   // if PSRAM IC present, init with UXGA resolution and higher JPEG quality
   //                      for larger pre-allocated frame buffer.
-  if (psramFound()) {
+  if(psramFound()){
     config.frame_size = FRAMESIZE_UXGA;
     config.jpeg_quality = 10;
     config.fb_count = 2;
@@ -95,15 +81,24 @@ void setup() {
   s->set_vflip(s, 1);
   s->set_hmirror(s, 1);
 #endif
-  WiFi.mode(WIFI_STA);
+
   WiFi.begin(ssid, password);
-  clientTCP.setCACert(TELEGRAM_CERTIFICATE_ROOT);
+
   while (WiFi.status() != WL_CONNECTED) {
     delay(500);
     Serial.print(".");
   }
   Serial.println("");
   Serial.println("WiFi connected");
+  Serial.println(xPortGetCoreID());
+  xTaskCreatePinnedToCore(
+      TeleBot, /* Function to implement the task */
+      "Task1", /* Name of the task */
+      10000,  /* Stack size in words */
+      NULL,  /* Task input parameter */
+      9,  /* Priority of the task */
+      &Task1,  /* Task handle. */
+      0); /* Core where the task should run */
 
   startCameraServer();
 
@@ -112,20 +107,30 @@ void setup() {
   Serial.println("' to connect");
 }
 
-void loop() {
-  //Door lock logic
-  if(matchFace && doorLocked){
+void TeleBot(void * parameter){
+  clientTCP.setCACert(TELEGRAM_CERTIFICATE_ROOT);
+  Serial.print("Bot Thread ");
+  Serial.println(xPortGetCoreID());
+  for(;;){
+    if(matchFace && doorLocked){
+    door.attach(14);
     door.write(180);
     doorLocked=false;
     sendPhotoToTelegram();
     prevMillis=millis();
+    matchFace=false;
   }
   if(!doorLocked && millis() - prevMillis > interval){
+    door.attach(14);
     door.write(0);
     doorLocked=true;
     
   }
-  readBot();
+    readBot();
+    Serial.println("Bot Read ");
+  }
+}
+
+void loop() {
   // put your main code here, to run repeatedly:
-  delay(100);
 }
